@@ -8,7 +8,7 @@ Project carried out by Cimador Gabriele, Eremia Andreea-Evelina, Stabile Marco a
 
 ## License
 
-Repository licensed with the MIT license. See the [LICENSE](LICENSE.md) for rights and limitations.
+Repository licensed with the MIT license. See the [LICENSE](LICENSE) for rights and limitations.
 
 ## Explanation
 
