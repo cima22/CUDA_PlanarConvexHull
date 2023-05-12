@@ -87,7 +87,7 @@ int main() {
 
     */
 
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = chrono::high_resolution_clock::now();
     // Compute time interval
     auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
 
