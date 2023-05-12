@@ -1,14 +1,21 @@
-#ifndef RANDOM_POINTS_H
-#define RANDOM_POINTS_H
+//
+// Created by Michele Tamborrino on 12/05/23.
+//
 
-struct point {
-  double x;
-  double y;
+#ifndef GPU_RANDOM_POINTS_H
+#define GPU_RANDOM_POINTS_H
+
+#include <vector>
+
+struct Point {
+    double x;
+    double y;
 };
 
-void generate_random_points(struct point points[], int n);
+std::vector<Point> generate_random_points();
 
-#define N 20000
-#define RANGE 30000
+const int N = 20000;
+const int RANGE = 30000;
 
-#endif // RANDOM_POINTS_H
+
+#endif //GPU_RANDOM_POINTS_H
