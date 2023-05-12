@@ -19,5 +19,5 @@ test.c is a file to test the effective points generation.\
 quick_hull.c implements the sequential version of the quickhull algorithm.\
 \
 \
-points_generator.cpp has a function that returns a vector of points of size defined in the .h file.
+points_generator.cpp has a function that returns a vector of points of size defined in the .h file.\
 main.cpp implements the sequential version of the quickhull algorithm.\
