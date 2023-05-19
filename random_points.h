@@ -14,8 +14,9 @@ struct Point {
 
 std::vector<Point> generate_random_points();
 
-const int N = 20000;
+const int N = 2000000;
 const int RANGE = 30000;
 
+static unsigned int seed = 2023;
 
 #endif //GPU_RANDOM_POINTS_H
