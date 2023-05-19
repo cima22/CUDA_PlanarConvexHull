@@ -6,8 +6,7 @@
 #include "random_points.h"
 
 std::vector<Point> generate_random_points() {
-    std::random_device rd;
-    std::mt19937 rng(rd());
+    std::mt19937 rng(seed);
     std::uniform_real_distribution<double> dist(-RANGE, RANGE);
 
     std::vector<Point> points(N);
