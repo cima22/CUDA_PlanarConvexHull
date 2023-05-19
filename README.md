@@ -14,10 +14,9 @@ Repository licensed with the MIT license. See the [LICENSE](LICENSE) for rights 
 
 random_point.h is the header where number of points and range are specified, as well as the point structure.\
 \
-points_generator.c contains the code that produces a set of points randomly in a plane, populating an array given as an argument.\
-test.c is a file to test the effective points generation.\
-quick_hull.c implements the sequential version of the quickhull algorithm.\
-\
 \
 points_generator.cpp has a function that returns a vector of points of size defined in the .h file.\
-main.cpp implements the sequential version of the quickhull algorithm.\
+serial_quickhull.cpp implements the sequential version of the quickhull algorithm.\
+\
+\
+cuda_quickhull.cu is a first version of the QuickHull implemented with CUDA.
