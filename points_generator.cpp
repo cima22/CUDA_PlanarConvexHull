@@ -5,6 +5,12 @@
 #include <random>
 #include "random_points.h"
 
+double Point::distance_from(const Point& b){
+	double dx = x - b.x;
+	double dy = y - b.y;
+	return std::sqrt(dx * dx + dy * dy);
+}
+
 std::vector<Point> generate_random_points() {
     std::mt19937 rng(seed);
     std::uniform_real_distribution<double> dist(-RANGE, RANGE);

@@ -10,12 +10,14 @@
 struct Point {
     double x;
     double y;
+
+    double distance_from(const Point& b);
 };
 
 std::vector<Point> generate_random_points();
 
-const int N = 2000000;
-const int RANGE = 30000;
+const int N = 5;
+const int RANGE = 10;
 
 static unsigned int seed = 2023;
 

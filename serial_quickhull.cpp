@@ -5,31 +5,17 @@
 #include <chrono>
 #include <algorithm>
 
-using namespace std;
-
-
-// compute distance between points
-double distance(const Point& p1, const Point& p2) {
-    double dx = p2.x - p1.x;
-    double dy = p2.y - p1.y;
-    double distance = std::sqrt(dx * dx + dy * dy);
-    return distance;
-}
-
 // compute distance of a point from a line that passes by P and Q
-double distance_from_line(const Point& p, const Point& q, double x, double y) {
+double distance_from_line(const Point& p, const Point& q, const Point& v) {
     double a = q.y - p.y;
     double b = p.x - q.x;
     double c = (q.x * p.y) - (p.x * q.y);
-
-    double distance = std::abs((a * x + b * y + c) / std::sqrt(a * a + b * b));
-    return distance;
+    return std::abs((a * v.x + b * v.y + c) / std::sqrt(a * a + b * b));
 }
 
 // Check if a point is above the line PQ in a clockwise direction
 bool isAboveClockwise(const Point& p, const Point& q, const Point& point) {
-    double cross = ((q.x - p.x) * (point.y - p.y)) - ((point.x - p.x) * (q.y - p.y));
-    return cross > 0;
+    return (((q.x - p.x) * (point.y - p.y)) - ((point.x - p.x) * (q.y - p.y))) > 0;
 }
 
 // Check if a point is on the left of another
@@ -38,34 +24,26 @@ bool isLeftOf(const Point& a, const Point& b) {
 }
 
 // Returns the index of the farthest point from segment (a, b).
-size_t getFarthest(const Point& a, const Point& b, const vector<Point>& v) {
-    size_t idxMax = 0;
-    double distMax = distance_from_line(a, b, v[idxMax].x, v[idxMax].y);
-
-    for (size_t i = 1; i < v.size(); ++i) {
-        double distCurr = distance_from_line(a, b, v[i].x, v[i].x);
-        if (distCurr > distMax) {
-            idxMax = i;
-            distMax = distCurr;
-        }
-    }
-
-    return idxMax;
+Point getFarthest(const Point& a, const Point& b, const std::vector<Point>& v) {
+    auto by_distance_from_line = [&](const Point& p1, const Point& p2){
+	    return distance_from_line(a,b,p1) < distance_from_line(a,b,p2);
+	};
+    return *std::max_element(v.begin(), v.end(), by_distance_from_line);
 }
 
 // Recursive call of the quickhull algorithm.
-void quickHull(const vector<Point>& v, const Point& a, const Point& b,vector<Point>& hull) {
+void quickHull(const std::vector<Point>& v, const Point& a, const Point& b, std::vector<Point>& hull) {
 
     if (v.empty()) {
         return;
     }
 
-    Point f = v[getFarthest(a, b, v)];
+    Point f = getFarthest(a, b, v);
 
     // Collect points to the left of segment (a, f)
-    vector<Point> left;
+    std::vector<Point> left;
     for (auto p : v) {
-        if (isAboveClockwise(a, f, b)) {
+        if (isAboveClockwise(a, f, p)) {
             left.push_back(p);
         }
     }
@@ -75,7 +53,7 @@ void quickHull(const vector<Point>& v, const Point& a, const Point& b,vector<Poi
     hull.push_back(f);
 
     // Collect points to the left of segment (f, b)
-    vector<Point> right;
+    std::vector<Point> right;
     for (auto p : v) {
         if (isAboveClockwise(f, b, p)) {
             right.push_back(p);
@@ -85,15 +63,15 @@ void quickHull(const vector<Point>& v, const Point& a, const Point& b,vector<Poi
 }
 
 // QuickHull algorithm
-vector<Point> quickHull(const vector<Point>& v) {
-    vector<Point> hull;
+std::vector<Point> quickHull(const std::vector<Point>& v) {
+    std::vector<Point> hull;
 
     // Start with the leftmost and rightmost points.
-    Point p = *min_element(v.begin(), v.end(), isLeftOf);
-    Point q = *max_element(v.begin(), v.end(), isLeftOf);
+    Point p = *std::min_element(v.begin(), v.end(), isLeftOf);
+    Point q = *std::max_element(v.begin(), v.end(), isLeftOf);
 
     // Split the points on either side of segment (a, b)
-    vector<Point> left, right;
+    std::vector<Point> left, right;
     for (auto t : v) {
         isAboveClockwise(p, q, t) ? left.push_back(t) : right.push_back(t);
     }
@@ -121,27 +99,30 @@ int main() {
     std::vector<Point> points(N);
     points = generate_random_points();
 
-    cout << "Points generated!" << endl;
+    std::cout << "Points generated!" << std::endl;
+	
+    for(const auto& point : points)
+	    std::cout << point.x << " " << point.y << "\n";
 
     // allocate vector to contain the points of the convex hull
     std::vector<Point> chull;
 
-    cout << "Beginning (serial) Quickhull algorithm..." << endl;
+    std::cout << "\n\nBeginning (serial) Quickhull algorithm..." << std::endl;
     // Timer starts when first split function is called
-    auto start = chrono::high_resolution_clock::now();
+    auto start = std::chrono::high_resolution_clock::now();
     chull = quickHull(points);
 
     // Print the result vector
     for (const auto& point : chull) {
-        cout << point.x << " "<< point.y << endl;
+	    std::cout << point.x << " "<< point.y << std::endl;
     }
 
-    cout << chull.size() << endl;
+    std::cout << chull.size() << std::endl;
 
-    auto end = chrono::high_resolution_clock::now();
+    auto end = std::chrono::high_resolution_clock::now();
     // Compute time interval
-    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-    cout << "Execution time: " << duration << " ms" << endl;
+    std::cout << "Execution time: " << duration << " ms" << std::endl;
     return 0;
 }
