@@ -3,4 +3,4 @@ project(gpu)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(gpu main.cpp random_points.h points_generator.cpp)
+add_executable(gpu serial_quickhull.cpp random_points.h points_generator.cpp)

@@ -18,22 +18,16 @@ bool isAboveClockwise(const Point& p, const Point& q, const Point& point) {
     return (((q.x - p.x) * (point.y - p.y)) - ((point.x - p.x) * (q.y - p.y))) > 0;
 }
 
-// Check if a point is on the left of another
-bool isLeftOf(const Point& a, const Point& b) {
-    return (a.x < b.x || (a.x == b.x && a.y < b.y));
-}
-
 // Returns the index of the farthest point from segment (a, b).
 Point getFarthest(const Point& a, const Point& b, const std::vector<Point>& v) {
-    auto by_distance_from_line = [&](const Point& p1, const Point& p2){
-	    return distance_from_line(a,b,p1) < distance_from_line(a,b,p2);
-	};
-    return *std::max_element(v.begin(), v.end(), by_distance_from_line);
+    return *std::max_element(v.begin(), v.end(),
+                             [&](const Point& p1, const Point& p2){
+        return distance_from_line(a,b,p1) < distance_from_line(a,b,p2);
+    });
 }
 
 // Recursive call of the quickhull algorithm.
 void quickHull(const std::vector<Point>& v, const Point& a, const Point& b, std::vector<Point>& hull) {
-
     if (v.empty()) {
         return;
     }
@@ -42,7 +36,7 @@ void quickHull(const std::vector<Point>& v, const Point& a, const Point& b, std:
 
     // Collect points to the left of segment (a, f)
     std::vector<Point> left;
-    for (auto p : v) {
+    for (const auto p : v) {
         if (isAboveClockwise(a, f, p)) {
             left.push_back(p);
         }
@@ -54,7 +48,7 @@ void quickHull(const std::vector<Point>& v, const Point& a, const Point& b, std:
 
     // Collect points to the left of segment (f, b)
     std::vector<Point> right;
-    for (auto p : v) {
+    for (const auto p : v) {
         if (isAboveClockwise(f, b, p)) {
             right.push_back(p);
         }
@@ -65,10 +59,12 @@ void quickHull(const std::vector<Point>& v, const Point& a, const Point& b, std:
 // QuickHull algorithm
 std::vector<Point> quickHull(const std::vector<Point>& v) {
     std::vector<Point> hull;
-
+    auto by_x = [](const Point& p1, const Point& p2){
+        return (p1.x < p2.x || (p1.x == p2.x && p1.y < p2.y));
+    };
     // Start with the leftmost and rightmost points.
-    Point p = *std::min_element(v.begin(), v.end(), isLeftOf);
-    Point q = *std::max_element(v.begin(), v.end(), isLeftOf);
+    Point p = *std::min_element(v.begin(), v.end(), by_x);
+    Point q = *std::max_element(v.begin(), v.end(), by_x);
 
     // Split the points on either side of segment (a, b)
     std::vector<Point> left, right;
@@ -91,8 +87,6 @@ std::vector<Point> quickHull(const std::vector<Point>& v) {
 
     return hull;
 }
-
-
 
 int main() {
     // generate the points in the plane
