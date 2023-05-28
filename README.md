@@ -19,4 +19,5 @@ points_generator.cpp has a function that returns a vector of points of size defi
 serial_quickhull.cpp implements the sequential version of the quickhull algorithm.\
 \
 \
-cuda_quickhull.cu is a first version of the QuickHull implemented with CUDA.
+cuda_quickhull.cu is a first version of the QuickHull implemented with CUDA.\
+thrust_quickhull.cu implements quickhull algorithm using advantages of Thrust library.
