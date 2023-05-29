@@ -140,8 +140,8 @@ int main() {
 	cout << ".\n.\n." << endl;
 	
 	// Print last 3 elements
-	for (int i = 0; i < 3; i++) {
-    	printf("Hull Point %d: (%f, %f)\n", numHullPoints-i-1, points[hullPoints[numHullPoints-i-1]].x, points[hullPoints[numHullPoints-i-1]].y);
+	for (int i = numHullPoints-3; i < numHullPoints; i++) {
+    	printf("Hull Point %d: (%f, %f)\n", i, points[hullPoints[i]].x, points[hullPoints[i]].y);
 	}
 
 	// Compute time interval
