@@ -13,9 +13,16 @@ double distance_from_line(const Point& p, const Point& q, const Point& v) {
     return std::abs((a * v.x + b * v.y + c) / std::sqrt(a * a + b * b));
 }
 
+enum Position {above,below,on};
+
 // Check if a point is above the line PQ in a clockwise direction
-bool isAboveClockwise(const Point& p, const Point& q, const Point& point) {
-    return (((q.x - p.x) * (point.y - p.y)) - ((point.x - p.x) * (q.y - p.y))) > 0;
+Position isAboveClockwise(const Point& p, const Point& q, const Point& point) {
+    double res = ((q.x - p.x) * (point.y - p.y)) - ((point.x - p.x) * (q.y - p.y));
+    if(res > 0)
+        return above;
+    if(res < 0)
+        return below;
+    return on;
 }
 
 // Returns the index of the farthest point from segment (a, b).
@@ -36,23 +43,17 @@ void quickHull(const std::vector<Point>& v, const Point& a, const Point& b, std:
 
     // Collect points to the left of segment (a, f)
     std::vector<Point> left;
-    for (const auto p : v) {
-        if (isAboveClockwise(a, f, p)) {
-            left.push_back(p);
-        }
-    }
-    quickHull(left, a, f, hull);
-
-    // Add f to the hull
-    hull.push_back(f);
-
-    // Collect points to the left of segment (f, b)
     std::vector<Point> right;
     for (const auto p : v) {
-        if (isAboveClockwise(f, b, p)) {
+        if (isAboveClockwise(a, f, p) == above) {
+            left.push_back(p);
+        }
+        if (isAboveClockwise(f, b, p) == above) {
             right.push_back(p);
         }
     }
+    hull.push_back(f);
+    quickHull(left, a, f, hull);
     quickHull(right, f, b, hull);
 }
 
@@ -69,9 +70,26 @@ std::vector<Point> quickHull(const std::vector<Point>& v) {
     // Split the points on either side of segment (a, b)
     std::vector<Point> left, right;
     for (auto t : v) {
-        isAboveClockwise(p, q, t) ? left.push_back(t) : right.push_back(t);
+        switch (isAboveClockwise(p, q, t)) {
+            case above:
+                left.push_back(t);
+                break;
+            case below:
+                right.push_back(t);
+                break;
+            case on:
+                break;
+        }
     }
 
+    std::cout << "\nleft:\n";
+    for(auto& w : left)
+        std::cout << w.x << "," << w.y << std::endl;
+
+    std::cout << "\nright:\n";
+    for(auto& w : right)
+        std::cout << w.x << "," << w.y << std::endl;
+std::cout << "\n\n\n\n\n";
     // Be careful to add points to the hull
     // in the correct order. Add our leftmost point.
     hull.push_back(p);
@@ -90,21 +108,17 @@ std::vector<Point> quickHull(const std::vector<Point>& v) {
 
 int main() {
     // generate the points in the plane
-    std::vector<Point> points(N);
-    points = generate_random_points();
+    auto points = generate_random_points();
 
     std::cout << "Points generated!" << std::endl;
 	
     for(const auto& point : points)
 	    std::cout << point.x << " " << point.y << "\n";
 
-    // allocate vector to contain the points of the convex hull
-    std::vector<Point> chull;
-
     std::cout << "\n\nBeginning (serial) Quickhull algorithm..." << std::endl;
     // Timer starts when first split function is called
     auto start = std::chrono::high_resolution_clock::now();
-    chull = quickHull(points);
+    auto chull = quickHull(points);
 
     // Print the result vector
     for (const auto& point : chull) {

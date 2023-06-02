@@ -14,13 +14,15 @@ double Point::distance_from(const Point& b){
 std::vector<Point> generate_random_points() {
     std::mt19937 rng(seed);
     std::uniform_real_distribution<double> dist(-RANGE, RANGE);
-
+/*
     std::vector<Point> points(N);
     for (int i = 0; i < N; i++) {
         points[i].x = dist(rng);
         points[i].y = dist(rng);
     }
+    */
+    return {Point(1, 1),Point(2, 3),Point(4, 2),Point(5, 5),Point(6, 3),Point(7, 4),Point(9, 1)};
 
-    return points;
+    //return points;
 }
 
