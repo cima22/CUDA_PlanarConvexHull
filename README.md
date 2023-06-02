@@ -20,4 +20,5 @@ serial_quickhull.cpp implements the sequential version of the quickhull algorith
 \
 \
 cuda_quickhull.cu is a first version of the QuickHull implemented with CUDA.\
+unified_quickhull.cu implements the same algorithm but using Unified Memory instead.\
 thrust_quickhull.cu implements quickhull algorithm using advantages of Thrust library.
