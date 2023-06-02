@@ -10,8 +10,6 @@
 struct Point {
     double x;
     double y;
-
-    double distance_from(const Point& b);
 };
 
 std::vector<Point> generate_random_points();
