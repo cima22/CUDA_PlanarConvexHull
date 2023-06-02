@@ -21,7 +21,7 @@ std::vector<Point> generate_random_points() {
         points[i].y = dist(rng);
     }
     */
-    return {Point(1, 1),Point(2, 3),Point(4, 2),Point(5, 5),Point(6, 3),Point(7, 4),Point(9, 1)};
+    return {Point(1, 1),Point(2, 2),Point(4, 6),Point(5, 3),Point(6, 3),Point(7, 2),Point(9, 1)};
 
     //return points;
 }

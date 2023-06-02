@@ -82,14 +82,6 @@ std::vector<Point> quickHull(const std::vector<Point>& v) {
         }
     }
 
-    std::cout << "\nleft:\n";
-    for(auto& w : left)
-        std::cout << w.x << "," << w.y << std::endl;
-
-    std::cout << "\nright:\n";
-    for(auto& w : right)
-        std::cout << w.x << "," << w.y << std::endl;
-std::cout << "\n\n\n\n\n";
     // Be careful to add points to the hull
     // in the correct order. Add our leftmost point.
     hull.push_back(p);
