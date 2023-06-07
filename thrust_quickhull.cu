@@ -14,89 +14,143 @@
 #include <thrust/tuple.h>
 #include <thrust/functional.h>
 #include <thrust/reduce.h>
+#include <thrust/extrema.h>
+#include <thrust/sort.h>
+#include <thrust/unique.h>
 
-
-// Check if a point is above the line PQ in a clockwise orientation
-__device__ bool isAboveClockwise(Point p, Point q, Point point) {
-	// Cross product gives which is the orientation
-    double cross = ((q.x - p.x) * (point.y - p.y)) - ((point.x - p.x) * (q.y - p.y));
-    return cross > 0;
-}
-
-// Functor to compute distance between a line PQ and a point
-struct DistanceToLineFunctor {
-    Point lineStart;
-    Point lineEnd;
-
-    __device__
-    double operator()(Point point) const {
-        double lineLength = distance(lineStart, lineEnd);
-        double area = 0.5f * fabsf(
-            (lineEnd.x - lineStart.x) * (lineStart.y - point.y) - 
-            (lineStart.x - point.x) * (lineEnd.y - lineStart.y)
-        );
-        return (2.0f * area) / lineLength;
-    }
-
-    // Funzione ausiliaria per calcolare la distanza tra due punti
-    __device__
-    double distance(Point p1, Point p2) const {
-        double dx = p2.x - p1.x;
-        double dy = p2.y - p1.y;
-        return sqrt(dx * dx + dy * dy);
+// compare two X points 
+struct PointComparatorX {
+    __host__ __device__
+    bool operator()(const Point& p1, const Point& p2) {
+        return p1.x < p2.x;
     }
 };
 
-__global__ void quickhull(const thrust::device_vector<Point>& points, int left, int right, std::vector<int>& convex_Hull) {
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+struct PointComparator {
+    __host__ __device__
+    bool operator()(const Point& p1, const Point& p2) {
+        if (p1.x < p2.x)
+            return true;
+        else if (p1.x > p2.x)
+            return false;
+        else
+            return p1.y < p2.y;
+    }
+};
+
+
+// functor to compute distance from line
+struct DistanceFromLine : public thrust::unary_function<Point, double> {
+    const Point left;
+    const Point right;
+
+    DistanceFromLine(const Point& left, const Point& right) : left(left), right(right) {}
+
+    __host__ __device__
+    double operator()(const Point& p) {
+        double A = right.y - left.y;
+        double B = left.x - right.x;
+        double C = right.x * left.y - left.x * right.y;
+        double dist = fabs(A * p.x + B * p.y + C) / sqrt(A * A + B * B);
+        if (A * p.x + B * p.y + C < 0)
+            dist = 0.0;
+        return dist;
+    }
+};
+
+struct isAboveClockwise : public thrust::unary_function<double, bool> {
+    __host__ __device__
+    bool operator()(double x) {
+        return x > 0.0;
+    }
+};
+
+void recursiveSplit(thrust::device_vector<Point>& output, const thrust::device_vector<Point>& input, int leftPoint, int rightPoint) {
+
+	// check if output is already full
+	if (output.size() >= N) return;
+
+	const Point& left = input[leftPoint];
+    const Point& right = input[rightPoint];
+
+    // Calcola le distanze dei punti dalla retta
+    thrust::device_vector<double> distances(input.size());
+    thrust::transform(input.begin(), input.end(), distances.begin(), DistanceFromLine(left, right));
+
+    // Trova il punto con la massima distanza dalla retta
+    auto maxDistIter = thrust::max_element(distances.begin(), distances.end());
+    size_t maxDistIndex = maxDistIter - distances.begin();
+    
+    // Aggiungi il punto trovato all'output
+    output.push_back(input[maxDistIndex]);
 	
-	
-    if (tid >= N) return;
-    
-    double maxDistance = -1.0f;
-    int maxIndex = -1;
-    
-    // vector of points above the line
-    
+	if (maxDistIndex != leftPoint) recursiveSplit(output, input, leftPoint, maxDistIndex);
+	if (maxDistIndex != rightPoint) recursiveSplit(output, input, maxDistIndex, rightPoint);
 }
 
-int main() {
-	
-	// Create vector of point in the host
-	thrust::host_vector<Point> host_Points = generate_random_points();
-	
-	// Print first 20 elements
-	for (int i = 0; i < 20; i++) {
-    	printf("Point %d: (%f, %f)\n", i, host_Points[i].x, host_Points[i].y);
-	}
-	
-	thrust::host_vector<double> h_x;
-    thrust::host_vector<double> h_y;
-    
-    // Decouple vector points in coordinates vectors
-	
-	for (const auto& point : host_Points) {
-        h_x.push_back(point.x);
-        h_y.push_back(point.y);
-    }
-    
-    // Copy from host to device
-    thrust::device_vector<double> d_x = h_x;
-    thrust::device_vector<double> d_y = h_y;
-	
-	auto min_value_iterator = thrust::min_element(d_x.begin(), d_x.end());
-	int min_x = min_value_iterator - d_x.begin();
-	printf("Minimum X value at position: %d\n", min_x);
-	
-	auto max_value_iterator = thrust::max_element(d_y.begin(), d_y.end());
-	int max_y = max_value_iterator - d_y.begin();
-	printf("Maximum Y value at position: %d\n", max_y);
-	
-	// input points in device
-    thrust::device_vector<Point> d_Points = host_Points;
-    // vector of indexes of points belonging to the hull
-    std::vector<int> hull_Points;
 
+void quickhullSplit(thrust::device_vector<Point>& output, const thrust::device_vector<Point>& input, int leftPoint, int rightPoint) {
+    const Point& left = input[leftPoint];
+    const Point& right = input[rightPoint];
+
+    // Calcola le distanze dei punti dalla retta
+    thrust::device_vector<double> distances(input.size());
+    thrust::transform(input.begin(), input.end(), distances.begin(), DistanceFromLine(left, right));
+
+    // Trova il punto con la massima distanza dalla retta
+    auto maxDistIter = thrust::max_element(distances.begin(), distances.end());
+    size_t maxDistIndex = maxDistIter - distances.begin();
+
+    // Aggiungi il punto trovato all'output
+    output.push_back(input[maxDistIndex]);
+    
+    if (maxDistIndex != leftPoint) recursiveSplit(output, input, leftPoint, maxDistIndex);
+    
+	if (maxDistIndex != rightPoint) recursiveSplit(output, input, maxDistIndex, rightPoint);
+}
+
+
+
+
+int main() {
+	// create a vector of points in the plane with thrust
+	thrust::host_vector<Point> h_points = generate_random_points();
 	
+	// create device vector with =
+	thrust::device_vector<Point> d_points = h_points;
+	
+	// find point with minimum x (so the left point)
+    auto min_x_iter = thrust::min_element(d_points.begin(), d_points.end(), PointComparatorX());
+    size_t min_x_index = min_x_iter - d_points.begin();
+    Point min_x_point = *min_x_iter;
+
+    // find point with maximum x (so the right point)
+    auto max_x_iter = thrust::max_element(d_points.begin(), d_points.end(), PointComparatorX());
+    size_t max_x_index = max_x_iter - d_points.begin();
+    Point max_x_point = *max_x_iter;
+	
+	thrust::device_vector<Point> d_out;
+	
+	quickhullSplit(d_out, d_points, min_x_index, max_x_index);
+	quickhullSplit(d_out, d_points, max_x_index, min_x_index);
+	
+	// Ordina il vettore dei punti
+	thrust::sort(d_out.begin(), d_out.end(), PointComparator());
+	
+	// Ridimensiona il vettore per eliminare i duplicati
+	auto newEnd = thrust::unique(d_out.begin(), d_out.end(), PointComparator());
+	d_out.resize(newEnd - d_out.begin());
+	
+	std::cout << "out size after unique: " << d_out.size() << std::endl;
+	
+	thrust::host_vector<Point> h_out = d_out;
+
+    std::cout << "Convex Hull Points:" << std::endl;
+    for (const auto& point : h_out)
+    {
+    	std::cout << "(" << point.x << ", " << point.y << ")" << std::endl;
+    }
+    std::cout << "Hull size: " << h_out.size() << std::endl;
+  
 	return 0;
 }
