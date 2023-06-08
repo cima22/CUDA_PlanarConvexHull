@@ -19,12 +19,12 @@
 #include <thrust/unique.h>
 
 // compare two X points 
-struct PointComparatorX {
-    __host__ __device__
-    bool operator()(const Point& p1, const Point& p2) {
-        return p1.x < p2.x;
-    }
-};
+    struct PointComparatorX {
+        __host__ __device__
+        bool operator()(const Point& p1, const Point& p2) {
+            return p1.x < p2.x;
+        }
+    };
 
 struct PointComparator {
     __host__ __device__
@@ -87,7 +87,6 @@ void recursiveSplit(thrust::device_vector<Point>& output, const thrust::device_v
 	if (maxDistIndex != leftPoint) recursiveSplit(output, input, leftPoint, maxDistIndex);
 	if (maxDistIndex != rightPoint) recursiveSplit(output, input, maxDistIndex, rightPoint);
 }
-
 
 void quickhullSplit(thrust::device_vector<Point>& output, const thrust::device_vector<Point>& input, int leftPoint, int rightPoint) {
     const Point& left = input[leftPoint];
