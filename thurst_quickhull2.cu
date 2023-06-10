@@ -21,9 +21,11 @@
 #include <thrust/extrema.h>
 #include <thrust/sort.h>
 #include <thrust/unique.h>
+#include <thrust/copy.h>
+#include <thrust/execution_policy.h>
 
 struct PointComparatorByX {
-    __host__ __device__
+    __device__
     bool operator()(const Point& p1, const Point& p2) {
         return p1.x < p2.x;
     }
@@ -34,11 +36,12 @@ private:
     const Point p;
     const Point q;
 public:
+    __host__ __device__
     isAboveLine(const Point& p, const Point&q):p{p},q{q}{};
 
-    __host__ __device__
+    __device__
     bool operator()(const Point& point) {
-        return ((q.x - p.x) * (point.y - p.y)) - ((point.x - p.x) * (q.y - p.y)) > 0;
+        return (((q.x - p.x) * (point.y - p.y)) - ((point.x - p.x) * (q.y - p.y))) > 1e-8;
     }
 };
 
@@ -49,16 +52,18 @@ private:
     double c;
 
 public:
+    __host__ __device__
     DistanceFromLine(const Point& p, const Point& q) : a(q.y - p.y), b(p.x - q.x), c((q.x * p.y) - (p.x * q.y)){}
 
-    __host__ __device__
-    double operator()(const Point& p1, const Point& p2) {
+    __device__
+    bool operator()(const Point& p1, const Point& p2) {
         auto d1 = fabs((a * p1.x + b * p1.y + c) / std::sqrt(a * a + b * b));
         auto d2 = fabs((a * p2.x + b * p2.y + c) / std::sqrt(a * a + b * b));
         return d1 < d2;
     }
 };
 
+__host__
 void quickHull(const thrust::device_vector<Point>& v, const Point& a, const Point& b, thrust::device_vector<Point>& hull) {
     if (v.empty()) {
         return;
@@ -66,47 +71,55 @@ void quickHull(const thrust::device_vector<Point>& v, const Point& a, const Poin
 
     Point f = *thrust::max_element(v.begin(),v.end(), DistanceFromLine(a,b));
 
-    // Collect points to the left of segment (a, f)
-    std::vector<Point> left;
-    std::vector<Point> right;
-    thrust::device_vector<Point> aboveAFsegment;
-    thrust::copy_if(thurst::device,v.begin(),v.end(),aboveAFsegment.begin(),isAboveLine(a,f));
-    thrust::device_vector<Point> aboveFBsegment;
-    thrust::copy_if(thurst::device,v.begin(),v.end(),aboveFBsegment.begin(),isAboveLine(f,b));
+    thrust::device_vector<Point> aboveAFsegment(v.size());
+    size_t aboveAFSize = thrust::copy_if(thrust::device,v.begin(),v.end(),aboveAFsegment.begin(),isAboveLine(a,f)) - aboveAFsegment.begin();
+    aboveAFsegment.resize(aboveAFSize);
+    thrust::device_vector<Point> aboveFBsegment(v.size());
+    size_t aboveFBSize = thrust::copy_if(thrust::device,v.begin(),v.end(),aboveFBsegment.begin(),isAboveLine(f,b)) - aboveFBsegment.begin();
+    aboveFBsegment.resize(aboveFBSize);
     hull.push_back(f);
     quickHull(aboveAFsegment, a, f, hull);
     quickHull(aboveFBsegment, f, b, hull);
-
 }
 
+__host__
 void quickHull(const thrust::device_vector<Point>& input, thrust::device_vector<Point>& output) {
     Point pointWithMinX = * thrust::min_element(input.begin(),input.end(),PointComparatorByX());
     Point pointWithMaxX = * thrust::max_element(input.begin(),input.end(),PointComparatorByX());
-    thrust::device_vector<Point> aboveLine;
-    thrust::copy_if(thurst::device,input.begin(),input.end(),aboveLine.begin(),isAboveLine(pointWithMinX,pointWithMaxX));
-    thrust::device_vector<Point> belowLine;
-    thrust::copy_if(thurst::device,input.begin(),input.end(),belowLine.begin(),isAboveLine(pointWithMaxX,pointWithMinX));
+    thrust::device_vector<Point> aboveLine(input.size());
+    size_t aboveSize = thrust::copy_if(thrust::device,input.begin(),input.end(),aboveLine.begin(),isAboveLine(pointWithMinX,pointWithMaxX)) - aboveLine.begin();
+    aboveLine.resize(aboveSize);
+    thrust::device_vector<Point> belowLine(input.size());
+    size_t belowSize = thrust::copy_if(thrust::device,input.begin(),input.end(),belowLine.begin(),isAboveLine(pointWithMaxX,pointWithMinX)) - belowLine.begin();
+    belowLine.resize(belowSize);
     output.push_back(pointWithMinX);
     quickHull(aboveLine, pointWithMinX, pointWithMaxX, output);
     output.push_back(pointWithMaxX);
-    quickHull(belowLine, pointWithMinX, pointWithMaxX, output);
+    quickHull(belowLine, pointWithMaxX, pointWithMinX, output);
 }
 
 int main() {
     // create a vector of points in the plane with thrust
     thrust::host_vector<Point> h_points = generate_random_points();
 
+    std::cout << "Dataset:\n";
+    for(auto const& point : h_points){
+        std::cout << "(" << point.x << ", " << point.y << ")\n";;
+    }
+
+    std::cout << std::endl;
+
     // create device vector
     thrust::device_vector<Point> d_points = h_points;
     thrust::device_vector<Point> hull;
-    // find point with minimum x (so the left point)
+
     quickHull(d_points,hull);
     thrust::host_vector<Point> h_out = hull;
 
-    std::cout << "Convex Hull Points:" << std::endl;
+    std::cout << "Convex Hull Points:\n";
     for (const auto& point : h_out)
     {
-        std::cout << "(" << point.x << ", " << point.y << ")" << std::endl;
+        std::cout << "(" << point.x << ", " << point.y << ")\n";
     }
     std::cout << "Hull size: " << h_out.size() << std::endl;
 
