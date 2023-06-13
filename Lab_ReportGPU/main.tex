@@ -1,0 +1,246 @@
+\documentclass[a4paper,oneside,11pt,DIV12,headsepline,footexclude,headexclude]{scrartcl}
+
+
+%% Normal LaTeX or pdfLaTeX? %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ==> The new if-Command "\ifpdf" will be used at some
+%% ==> places to ensure the compatibility between
+%% ==> LaTeX and pdfLaTeX.
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+	\pdffalse              %%normal LaTeX is executed
+\else
+	\pdfoutput=1
+	\pdftrue               %%pdfLaTeX is executed
+\fi
+
+%% Packages for Graphics & Figures %%%%%%%%%%%%%%%%%%%%%%%%%%
+\ifpdf %%Inclusion of graphics via \includegraphics{file}
+	\usepackage[pdftex]{graphicx} %%graphics in pdfLaTeX
+\else
+	\usepackage[dvips]{graphicx} %%graphics and normal LaTeX
+\fi
+\graphicspath{{fig/}}
+
+%% Fonts for pdfLaTeX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ==> Only needed, if cm-super-fonts are not installed
+%\ifpdf
+	%\usepackage{ae}       %%Use only just one of these packages:
+	%\usepackage{zefonts}  %%depends on your installation.
+%\else
+	%%Normal LaTeX - no special packages for fonts required
+%\fi
+
+\renewcommand{\rmdefault}{pbk} % bookman
+\renewcommand{\sfdefault}{phv} % helvetica (avantgarde = pag)
+\renewcommand{\ttdefault}{pcr} % courier
+\renewcommand{\familydefault}{phv}
+
+%\usepackage{cmbright}  % computer modern bright - not for pdf
+
+
+\areaset{16cm}{24cm}
+\addtolength{\topskip}{0.5cm}
+
+
+% texttt hyphenation
+\newcommand{\origttfamily}{}
+\let\origttfamily=\ttfamily
+\renewcommand{\ttfamily}{\origttfamily \hyphenchar\font=`\-}
+
+
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{array}
+\usepackage{float}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+\usepackage{paralist}
+\usepackage{color}
+
+\usepackage{listings}
+\lstset{language=Java,basicstyle=\ttfamily\small,tabsize=2}
+
+
+%% Line Spacing %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{setspace}
+%\singlespacing        %% 1-spacing (default)
+%\onehalfspacing       %% 1,5-spacing
+%\doublespacing        %% 2-spacing
+
+\linespread{1.05}
+\addtolength{\parskip}{0.175\baselineskip}
+
+\widowpenalty = 10000
+\clubpenalty = 10000
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% DOCUMENT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+%% File Extensions of Graphics %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ==> This enables you to omit the file extension of a graphic.
+%% ==> "\includegraphics{title.eps}" becomes "\includegraphics{title}".
+%% ==> If you create 2 graphics with same content (but different file types)
+%% ==> "title.eps" and "title.pdf", only the file processable by
+%% ==> your compiler will be used.
+%% ==> pdfLaTeX uses "title.pdf". LaTeX uses "title.eps".
+\ifpdf
+	\DeclareGraphicsExtensions{.pdf,.jpg,.png}
+\else
+	\DeclareGraphicsExtensions{.eps}
+\fi
+
+
+\pagestyle{plain} %Now display headings: headings / fancy / ...
+
+\title{\Huge Group 5 Lab Report}
+\subtitle{\Large Solving the Convex Hull problem with CUDA}
+\author{Michele Tamborrino, Technische Universit{\"a}t Wien\\
+Marco Stabile, Technische Universit{\"a}t Wien\\
+Gabriele Cimador, Technische Universit{\"a}t Wien\\
+Evelina Eremia, Technische Universit{\"a}t Wien}
+\date{} %%If commented, the current date is used.
+
+\maketitle
+
+\[\rule{135mm}{.5mm}\]
+\begin{section}{Introduction}
+ In various fields such as computer graphics, pattern recognition, and image processing it is crucial sometimes to find the smallest convex set that contains a group of points. It is not an easy task, all the more so if the set of points is in space with dimensions more than 2. But for the latter case, there are some algorithms that provide a good solution to this geometrical problem. Nevertheless this computation may be computational-heavy, as much as the input points increase in number. This is the reason why this project aims to offer a solution based on parallelization using GPUs\footnote{Graphics Processing Unit} and the CUDA\footnote{Compute Unified Device Architecture} framework, developed by NVIDIA. By offloading computationally intensive tasks to the GPU, we expect to achieve significant performance improvements over traditional CPU-based implementations.
+ \subsection{The Algorithm}
+ The QuickHull algorithm is an efficient method for computing the convex hull of a set of points in two-dimensional or three-dimensional space. The main idea is to identify the extreme points, which are the points located on the boundaries of the convex hull, and construct a portion of the hull between them. Subsequently, the algorithm recursively divides the point set into two subsets, one on each side of the line connecting the two extreme points. This process continues until all points are included in the convex hull. The QuickHull algorithm exploits the concept of "divide and conquer" to achieve its efficient computational complexity. The first iteration takes two points called \(P\) and \(Q\) that are defiintely on the hull and draw the line \(PQ\), then all the points above the line clockwise are kept and the farthest point \(F\) among them is searched.
+ \begin{figure}[h!]
+     \centering
+     \includegraphics[width=0.5\textwidth]{img/220px-Quickhull_example3.svg.png}
+     \caption{First iteration.}
+     \label{pq}
+ \end{figure}
+ \newpage
+ Once it is found, the following iterations continue with \(FP\) and \(PQ\) respectively.
+  \begin{figure}[h!]
+     \centering
+     \includegraphics[width=0.5\textwidth]{img/220px-Quickhull_example6.svg.png}
+     \caption{Second and third iteration.}
+     \label{pq}
+ \end{figure}
+\end{section}
+\begin{section}{Development}
+For the project \href{https://www.nvidia.com/en-us/data-center/tesla-t4/}{NVIDIA T4} is used via ssh. The code has been developed locally on students' pc and run on the GPU mentioned before. The programming language used is obviously C++ to easily take advantage the CUDA framework and the complete source code is available at the following \href{https://github.com/cima22/CUDA_PlanarConvexHull/tree/main}{GitHub repository}.
+\subsection{Header file}
+To first block of the code is the header file, where the characteristics of the Point variable are specified and some other useful parameters, such as the seed for the random generator and how many points are desired as input. This simple file promotes simplicity of use and parameterised code.
+\lstset{language=C++}
+\begin{lstlisting}[caption={Header file.}, captionpos=b]
+#ifndef GPU_RANDOM_POINTS_H
+#define GPU_RANDOM_POINTS_H
+
+#include <vector>
+
+struct Point {
+    double x;
+    double y;
+};
+
+std::vector<Point> generate_random_points();
+
+const int N = 2000000;
+const int RANGE = 30000;
+
+static unsigned int seed = 2023;
+
+#endif //GPU_RANDOM_POINTS_H
+\end{lstlisting}
+In this way whenever the input size, the range or the dimension of points have to be change, it would only require minor changes in this file and compile again.
+\subsection{Points generator}
+For the generation of points there is a separate cpp file called \textbf{points\_generator.cpp} that uses the random library to populate an std vector, and then return it to the caller.
+\lstset{language=C++}
+\begin{lstlisting}[caption={Random points generator.}, captionpos=b]
+#include <vector>
+#include <random>
+#include "random_points.h"
+
+std::vector<Point> generate_random_points() {
+    std::mt19937 rng(seed);
+    std::uniform_real_distribution<double> dist(-RANGE, RANGE);
+
+    std::vector<Point> points(N);
+    for (int i = 0; i < N; i++) {
+        points[i].x = dist(rng);
+        points[i].y = dist(rng);
+    }
+
+    return points;
+}
+
+\end{lstlisting}
+\subsection{Sequential code}
+Performance evaluations cannot be done without a benchmark. Therefore the first actual program is a sequential one. Basically it implement the QuickHull Algorithm using recursion. The first iteration finds the point \(F\) and for all the consecutive calls another function is invoked, but with the same name. 
+\lstset{language=C++}
+\begin{lstlisting}[caption={Function in sequential program.}, captionpos=b]
+// QuickHull algorithm
+std::vector<Point> quickHull(const std::vector<Point>& v) {
+    std::vector<Point> hull;
+    auto by_x = [](const Point& p1, const Point& p2){
+        return (p1.x < p2.x || (p1.x == p2.x && p1.y < p2.y));
+    };
+    // Start with the leftmost and rightmost points.
+    Point p = *std::min_element(v.begin(), v.end(), by_x);
+    Point q = *std::max_element(v.begin(), v.end(), by_x);
+
+    // Split the points on either side of segment (a, b)
+    std::vector<Point> left, right;
+    for (auto t : v) {
+        switch (isAboveClockwise(p, q, t)) {
+            case above:
+                left.push_back(t);
+                break;
+            case below:
+                right.push_back(t);
+                break;
+            case on:
+                break;
+        }
+    }
+
+    // Be careful to add points to the hull
+    // in the correct order. Add our leftmost point.
+    hull.push_back(p);
+
+    // Add hull points from the left (top)
+    quickHull(left, p, q, hull);
+
+    // Add our rightmost point
+    hull.push_back(q);
+
+    // Add hull points from the right (bottom)
+    quickHull(right, q, p, hull);
+
+    return hull;
+}
+\end{lstlisting}
+The entire code is not reported otherwise the report would be too long.
+\subsection{Parallelized code with CUDA}
+For the project 5 version of CUDA programs have been developed:
+\begin{enumerate}
+    \item[$\blacksquare$] a first version of parallelized code with classic memory usage.
+
+    \item[$\blacksquare$] A second version that uses the Pinned Memory standard.
+\\
+    \item[$\blacksquare$] A third version that uses Zero-Copy Memory, which is of course pinned.
+\\
+    \item[$\blacksquare$] A fourth version that uses the Unified Memory.
+\\
+    \item[$\blacksquare$] A fifth version that exploits the thrust library, well known for its simplicity.
+\end{enumerate}
+In the following chapter each program will be tested and compared in execution time with the sequential code, with some parameters changed, such as the input sizes.
+\end{section}
+\begin{section}{Performance Evaluations}
+In this chapter we are going to compare CPU and GPU code and see if there are any differences in execution time and number of inputs. After that, also the different versions of GPU code will be compard one another to obtain an insight on how a GPU and a parallelized code can perform.
+\subsection{CPU vs GPU}
+
+\end{section}
+\begin{section}{Conclusions}
+conclusioni
+\end{section}
+\end{document}
