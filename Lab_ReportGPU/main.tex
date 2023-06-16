@@ -54,8 +54,10 @@
 \usepackage{float}
 \usepackage{amssymb}
 \usepackage{listings}
+\usepackage{svg}
 \usepackage[hidelinks]{hyperref}
 \usepackage{paralist}
+\usepackage{amsmath}
 \usepackage{color}
 
 \usepackage{listings}
@@ -238,9 +240,51 @@ In the following chapter each program will be tested and compared in execution t
 \begin{section}{Performance Evaluations}
 In this chapter we are going to compare CPU and GPU code and see if there are any differences in execution time and number of inputs. After that, also the different versions of GPU code will be compard one another to obtain an insight on how a GPU and a parallelized code can perform.
 \subsection{CPU vs GPU}
+The first comparison is done with CPU and GPU with classical memory usage and thread block size equal to 256. The running times are average values over 5 iteration of the respective program. It is clear in Fig.\ref{cpuvsgpu} that GPUs are not champion in computing power but in throughput: for lower sets of points, the CPU still stands a chance whereas for larger sets its execution time increases drastically. On the other hand, GPU's running times are quite the same for every set, meaning that it is totally worth an intensive usage of its resources.
+\begin{figure}[H]
+    \centering
+    \includesvg[width=\textwidth]{img/cpugpu.svg}
+    \caption{Average running times of CPU and GPU with fixed block size of 256 and changing input points number.}
+    \label{cpuvsgpu}
+\end{figure}
+This also means that over a certain threshold GPU is the only solution for some tasks, as we can see with 20 million points performance.
+To highlight the last case, it is auseful to compute the absolute speed up:
+\begin{equation*}
+    S_{a}=\frac{T_{seq}}{T_{par}}=\frac{2654523\ \mu s}{319454\ \mu s}=8
+\end{equation*}
+which is an impressive speed-up for such a problem, but take into account that an absolute speed-up alone is not enough to do deep performance considerations.
+\subsection{Different GPU's implementations}
+CUDA's framework provides different approches when accessing and using memory of a GPU, which can improve or worsen the overall performances. For this reason this project aim to test several implementatio and not rely on only one to have a more general view and a deeper understanding. In addition to the first version, we have:
+\begin{enumerate}
+    \item[$\blacksquare$] \textbf{pinned\_quickhull.cu} uses the Pinned Memory approach. Basically it avoids the creattion of a pageable memory.
 
+    \item[$\blacksquare$] \textbf{zero\_quickhull.cu} uses the Zero-Copy Memory, allowing host and device to access each other's variables.
+\\
+    \item[$\blacksquare$] \textbf{unified\_quickhull.cu} uses the Unified Memory, to avoid distinction between host and device pointers.
+\\
+    \item[$\blacksquare$]  \textbf{thrust\_quickhull.cu}, where Thrust library has been used.
+\end{enumerate}
+In the following figure \ref{gpus} it is possible to see each performance compared.
+\begin{figure}[H]
+    \centering
+    \includesvg[width=\textwidth]{img/gpus.svg}
+    \caption{Performances of different implementations.}
+    \label{gpus}
+\end{figure}
+This plot needs some comments. For 2000 points in input all implementations the slowest implementations is the one with thrust, which is the price to pay for simplicity, while the fastest is the one with Pinned Memory with just \(41\mu s\). The other versions are quite comparable. In the second test with 20000 points the classic, Zero-Copy and Thurst implementations increased, while Unified did not by a lot. Zero-Copy version got slower of almost 10 times, whereas thee Pinned version is still the best. In the last case the Zero-Copy's time increased drastically, whereas the classic version did not change. Thrust implementation got slower but it can still be a good choice when simplicity is the most important factor for the developer. In the end, the best program is the one using the Pinned Memory. Nevertheless, it is important to highlight that these considerations may be true when talking about the convex hull problem, but might be false for any other problem. The context and the style of the implementation matters.
+\subsection{Playing with Thread Block Size}
+Another important factor for performances is the block size. The block size in CUDA programming plays a crucial role in achieving efficient and optimal GPU utilization. The block size determines how many threads are executed together on a single CUDA block.
+The choice of block size impacts several aspects of CUDA execution, including memory access patterns, thread synchronization, and occupancy. Choosing the right block size involves considering factors such as the problem size, memory requirements, and hardware constraints. A block size that is too small may result in underutilization of the GPU, while a block size that is too large may lead to resource wastage and decreased performance. This is the reason why it is useful to test different block sizes. Now take in consideration the fastest program and change its default block size to see wheter an additional improvement is possible.
+\begin{figure}[H]
+    \centering
+    \includesvg[width=\textwidth]{img/bs.svg}
+    \caption{Pinned Memory's execution times with different block sizes.}
+    \label{bs}
+\end{figure}
+It stands out that a poor choice, for example 1 thread per block, can lead to a way higher running time even with a cool code. Regarding the other sizes, they are similar but it turns out the default size we chose was not even the better one. Therefore the program using pinned memory can get faster if a block size of 64 is set.
 \end{section}
+\newpage
 \begin{section}{Conclusions}
-conclusioni
+conclusions
 \end{section}
 \end{document}
