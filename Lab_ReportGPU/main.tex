@@ -146,8 +146,8 @@ struct Point {
 
 std::vector<Point> generate_random_points();
 
-const int N = 2000000;
-const int RANGE = 30000;
+const int N = 2000;
+const int RANGE = 300;
 
 static unsigned int seed = 2023;
 
@@ -248,7 +248,7 @@ The first comparison is done with CPU and GPU with classical memory usage and th
     \label{cpuvsgpu}
 \end{figure}
 This also means that over a certain threshold GPU is the only solution for some tasks, as we can see with 20 million points performance.
-To highlight the last case, it is auseful to compute the absolute speed up:
+To highlight the last case, it is useful to compute the absolute speed up:
 \begin{equation*}
     S_{a}=\frac{T_{seq}}{T_{par}}=\frac{2654523\ \mu s}{319454\ \mu s}=8
 \end{equation*}
@@ -272,7 +272,7 @@ In the following figure \ref{gpus} it is possible to see each performance compar
     \label{gpus}
 \end{figure}
 This plot needs some comments. For 2000 points in input all implementations the slowest implementations is the one with thrust, which is the price to pay for simplicity, while the fastest is the one with Pinned Memory with just \(41\mu s\). The other versions are quite comparable. In the second test with 20000 points the classic, Zero-Copy and Thurst implementations increased, while Unified did not by a lot. Zero-Copy version got slower of almost 10 times, whereas thee Pinned version is still the best. In the last case the Zero-Copy's time increased drastically, whereas the classic version did not change. Thrust implementation got slower but it can still be a good choice when simplicity is the most important factor for the developer. In the end, the best program is the one using the Pinned Memory. Nevertheless, it is important to highlight that these considerations may be true when talking about the convex hull problem, but might be false for any other problem. The context and the style of the implementation matters.
-\subsection{Playing with Thread Block Size}
+\subsection{The relevance of Thread Block Size}
 Another important factor for performances is the block size. The block size in CUDA programming plays a crucial role in achieving efficient and optimal GPU utilization. The block size determines how many threads are executed together on a single CUDA block.
 The choice of block size impacts several aspects of CUDA execution, including memory access patterns, thread synchronization, and occupancy. Choosing the right block size involves considering factors such as the problem size, memory requirements, and hardware constraints. A block size that is too small may result in underutilization of the GPU, while a block size that is too large may lead to resource wastage and decreased performance. This is the reason why it is useful to test different block sizes. Now take in consideration the fastest program and change its default block size to see wheter an additional improvement is possible.
 \begin{figure}[H]
@@ -285,6 +285,15 @@ It stands out that a poor choice, for example 1 thread per block, can lead to a 
 \end{section}
 \newpage
 \begin{section}{Conclusions}
-conclusions
+In conclusion, our project involved developing a CUDA implementation for solving the Convex Hull problem exploiting the Quickhull algorithm, leveraging the parallel processing capabilities of GPUs. Throughout the project, we observed significant performance improvements compared to a CPU-based implementation when the input size is big enough. Thanks to the theory of GPU's architecture it has been easier to get hands on the code and provide a reasonable solution to thee geometrical problem.
+\subsection{Lesson learnt}
+Throughout this project, we gained valuable experience in utilizing CUDA for memory allocation and data transfer between the CPU and GPU, leveraging various memory standards such as pinned memory, zero copy, and unified memory.
+We learned how to effectively allocate memory on the GPU using CUDA APIs, ensuring efficient data movement and minimizing data transfer overhead. Pinned memory allowed us to achieve faster data transfers by eliminating page faults, while zero copy memory enabled direct access to host memory from the GPU, avoiding explicit data transfers.
+Moreover, we explored the concept of unified memory, which provided a simplified programming model by automatically managing data movement between the CPU and GPU. This allowed us to focus more on algorithm design and less on explicit memory management.
+In addition to memory-related aspects, we acquired knowledge in developing CUDA kernels to perform specific tasks. We learned to carefully select the appropriate thread indices and coordinate their execution to maximize parallelism and achieve optimal performance.Furthermore, we gained proficiency in compiling and running CUDA code, understanding the compilation process and utilizing the necessary compiler flags and runtime configurations.
+\subsection{Open issues}
+As we moved forward in this project, we encountered two pitfalls with the CUDA programs, except for the Thrust one. The first issue is the potential presence of duplicates points in the result vector, even though the kernel follows the theoretical quickhull algorithm. On the other hand, the results of Thurst program and squential program are reasonable and consistent. The second issue is a likely segmentation fault error when the input points are 2 millions or more for some of the executables.  
+\subsection{Future works}
+In terms of future works, it would be valuable to address the two open issues we encountered during the project. First, solving the potential duplication of points in the resulting vector when using CUDA versions other than Thrust. Second, optimizing the memory allocation strategy to handle segmentation faults when dealing with a large number of starting points. Additionally, it would be an interesting avenue for further development exploring and testing versions of the algorithm that handle three-dimensional points and beyond, since modern-life problems would require a solution of this kind.
 \end{section}
 \end{document}
