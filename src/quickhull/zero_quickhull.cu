@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <cmath>
-#include "random_points.h"
+#include "../points_generation/random_points.h"
 #include <vector>
 #include <chrono>
 #include <cuda_runtime.h>
