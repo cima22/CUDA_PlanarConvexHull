@@ -1,3 +1,5 @@
+<img src="https://img.shields.io/badge/C%2B%2B-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white" /> <img src="https://img.shields.io/badge/nVIDIA-%2376B900.svg?style=for-the-badge&logo=nVIDIA&logoColor=white"/> 
+
 # CUDA_PlanarConvexHull
 Final project for the course [GPU Architecures and Computing](https://tiss.tuwien.ac.at/course/courseDetails.xhtml?courseNr=182731&semester=2023S&dswid=7054&dsrid=445) @ [TU Wien](https://www.tuwien.at/). <br>
 
