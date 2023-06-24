@@ -14,7 +14,7 @@ struct Point {
 
 std::vector<Point> generate_random_points();
 
-const int N = 5;
+const int N = 200000;
 const int RANGE = 10;
 
 static unsigned int seed = 2023;

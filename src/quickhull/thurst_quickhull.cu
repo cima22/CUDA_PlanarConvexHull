@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <cmath>
-#include "../points_generation/random_points.h"
+#include "../../../../Desktop/CUDA_PlanarConvexHull/src/points_generation/random_points.h"
 #include <vector>
 #include <chrono>
 #include <cuda_runtime.h>
@@ -101,27 +101,35 @@ void quickHull(const thrust::device_vector<Point>& input, thrust::device_vector<
 int main() {
     // create a vector of points in the plane with thrust
     thrust::host_vector<Point> h_points = generate_random_points();
-
-    std::cout << "Dataset:\n";
-    for(auto const& point : h_points){
-        std::cout << "(" << point.x << ", " << point.y << ")\n";;
-    }
-
-    std::cout << std::endl;
+    std::cout << N << " points randomly generated!" << std::endl;
 
     // create device vector
     thrust::device_vector<Point> d_points = h_points;
     thrust::device_vector<Point> hull;
 
+    
+    auto start = std::chrono::high_resolution_clock::now();
     quickHull(d_points,hull);
+    auto end = std::chrono::high_resolution_clock::now();
     thrust::host_vector<Point> h_out = hull;
 
-    std::cout << "Convex Hull Points:\n";
-    for (const auto& point : h_out)
-    {
-        std::cout << "(" << point.x << ", " << point.y << ")\n";
-    }
-    std::cout << "Hull size: " << h_out.size() << std::endl;
+    std::cout << "Found convex hull with " << h_out.size() << " points.\nPrinting the first and last three points of the hull:" << std::endl;
 
+    // Print first 3 elements
+    for (int i = 0; i < 3; i++) {
+	    printf("(%f, %f)\n", h_out[i].x, h_out[i].y);
+	}
+	
+    std::cout << ".\n.\n." << std::endl;
+	
+    // Print last 3 elements
+    for (int i = h_out.size()-3; i < h_out.size(); i++) {
+	    printf("(%f, %f)\n",h_out[i].x, h_out[i].y);
+    }
+
+    // Compute time interval
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+    std::cout << "Execution time: " << duration << " ms" << std::endl;
     return 0;
 }

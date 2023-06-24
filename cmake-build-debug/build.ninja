@@ -49,17 +49,17 @@ cmake_ninja_workdir = C$:/Users/Gabriele/CLionProjects/CUDA_PlanarConvexHull/cma
 
 build cmake_object_order_depends_target_gpu: phony || CMakeFiles/gpu.dir
 
-build CMakeFiles/gpu.dir/serial_quickhull.cpp.obj: CXX_COMPILER__gpu_Debug C$:/Users/Gabriele/CLionProjects/CUDA_PlanarConvexHull/serial_quickhull.cpp || cmake_object_order_depends_target_gpu
-  DEP_FILE = CMakeFiles\gpu.dir\serial_quickhull.cpp.obj.d
+build CMakeFiles/gpu.dir/src/quickhull/serial_quickhull.cpp.obj: CXX_COMPILER__gpu_Debug C$:/Users/Gabriele/CLionProjects/CUDA_PlanarConvexHull/src/quickhull/serial_quickhull.cpp || cmake_object_order_depends_target_gpu
+  DEP_FILE = CMakeFiles\gpu.dir\src\quickhull\serial_quickhull.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always -std=gnu++20
   OBJECT_DIR = CMakeFiles\gpu.dir
-  OBJECT_FILE_DIR = CMakeFiles\gpu.dir
+  OBJECT_FILE_DIR = CMakeFiles\gpu.dir\src\quickhull
 
-build CMakeFiles/gpu.dir/points_generator.cpp.obj: CXX_COMPILER__gpu_Debug C$:/Users/Gabriele/CLionProjects/CUDA_PlanarConvexHull/points_generator.cpp || cmake_object_order_depends_target_gpu
-  DEP_FILE = CMakeFiles\gpu.dir\points_generator.cpp.obj.d
+build CMakeFiles/gpu.dir/src/points_generation/points_generator.cpp.obj: CXX_COMPILER__gpu_Debug C$:/Users/Gabriele/CLionProjects/CUDA_PlanarConvexHull/src/points_generation/points_generator.cpp || cmake_object_order_depends_target_gpu
+  DEP_FILE = CMakeFiles\gpu.dir\src\points_generation\points_generator.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always -std=gnu++20
   OBJECT_DIR = CMakeFiles\gpu.dir
-  OBJECT_FILE_DIR = CMakeFiles\gpu.dir
+  OBJECT_FILE_DIR = CMakeFiles\gpu.dir\src\points_generation
 
 
 # =============================================================================
@@ -69,7 +69,7 @@ build CMakeFiles/gpu.dir/points_generator.cpp.obj: CXX_COMPILER__gpu_Debug C$:/U
 #############################################
 # Link the executable gpu.exe
 
-build gpu.exe: CXX_EXECUTABLE_LINKER__gpu_Debug CMakeFiles/gpu.dir/serial_quickhull.cpp.obj CMakeFiles/gpu.dir/points_generator.cpp.obj
+build gpu.exe: CXX_EXECUTABLE_LINKER__gpu_Debug CMakeFiles/gpu.dir/src/quickhull/serial_quickhull.cpp.obj CMakeFiles/gpu.dir/src/points_generation/points_generator.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\gpu.dir

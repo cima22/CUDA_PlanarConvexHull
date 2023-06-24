@@ -35,8 +35,8 @@ $(OBJ_DIR):
 	@echo "Creating build directory: $(OBJ_DIR)"
 	$(MKDIR) $(OBJ_DIR)
 
-$(OBJ_DIR)/points_generator.o: $(SRC_DIR)/points_generation/points_generator.cpp
-	$(CC) $(CFLAGS) -c -o $@ $^
+$(OBJ_DIR)/points_generator.o: $(SRC_DIR)/points_generation/points_generator.cpp $(SRC_DIR)/points_generation/random_points.h
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/%.o: $(SRC_QH_DIR)/%.cu
 	@echo "Compiling $<"

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cmath>
-#include "../points_generation/random_points.h"
+#include "../../../../Desktop/CUDA_PlanarConvexHull/src/points_generation/random_points.h"
 #include <vector>
 #include <chrono>
 #include <algorithm>
@@ -102,27 +102,30 @@ int main() {
     // generate the points in the plane
     auto points = generate_random_points();
 
-    std::cout << "Points generated!" << std::endl;
+    std::cout << N << " points randomly generated!" << std::endl;
 	
-    for(const auto& point : points)
-	    std::cout << point.x << " " << point.y << "\n";
-
-    std::cout << "\n\nBeginning (serial) Quickhull algorithm..." << std::endl;
-    // Timer starts when first split function is called
+     // Timer starts when first split function is called
     auto start = std::chrono::high_resolution_clock::now();
     auto chull = quickHull(points);
+    auto end = std::chrono::high_resolution_clock::now();
+    
+    std::cout << "Found convex hull with " << chull.size() << " points.\nPrinting the first and last three points of the hull:" << std::endl;
 
-    // Print the result vector
-    for (const auto& point : chull) {
-	    std::cout << point.x << " "<< point.y << std::endl;
+    // Print first 3 elements
+    for (int i = 0; i < 3; i++) {
+	    printf("(%f, %f)\n", chull[i].x, chull[i].y);
+	}
+	
+    std::cout << ".\n.\n." << std::endl;
+	
+    // Print last 3 elements
+    for (int i = chull.size()-3; i < chull.size(); i++) {
+	    printf("(%f, %f)\n",chull[i].x, chull[i].y);
     }
 
-    std::cout << chull.size() << std::endl;
-
-    auto end = std::chrono::high_resolution_clock::now();
     // Compute time interval
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
     std::cout << "Execution time: " << duration << " ms" << std::endl;
+
     return 0;
 }

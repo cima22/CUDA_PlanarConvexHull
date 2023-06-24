@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <cmath>
-#include "../points_generation/random_points.h"
+#include "../../../../Desktop/CUDA_PlanarConvexHull/src/points_generation/random_points.h"
 #include <vector>
 #include <chrono>
 #include <cuda_runtime.h>
@@ -75,7 +75,7 @@ int main() {
 	int* numHullPoints;
 	// Generate random points in the plane using the function from the generator
 	vector<Point> r_points = generate_random_points();
-	cout << "Points randomly generated!" << endl;
+	cout << N <<" points randomly generated!" << endl;
 	
 	// Let's use Unified Memory
 	cudaMallocManaged((void**)&points, N*sizeof(Point)); // input
@@ -104,7 +104,7 @@ int main() {
 	int blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
 
 	// Timer starts
-    auto start = chrono::high_resolution_clock::now();
+    	auto start = chrono::high_resolution_clock::now();
     
 	// Launch Kernels
 	quickHullKernel<<<blocksPerGrid, threadsPerBlock>>>(points, N, left, right, hullPoints, numHullPoints);
@@ -115,16 +115,18 @@ int main() {
 	// Timer stops
 	auto end = chrono::high_resolution_clock::now();
 
+	cout << "Found convex hull with " << *numHullPoints << " points.\nPrinting the first and last three points of the hull:" << endl;
+	
 	// Print first 3 elements
 	for (int i = 0; i < 3; i++) {
-    	printf("Hull Point %d: (%f, %f)\n", i, points[hullPoints[i]].x, points[hullPoints[i]].y);
+    	printf("(%f, %f)\n",points[hullPoints[i]].x, points[hullPoints[i]].y);
 	}
 	
 	cout << ".\n.\n." << endl;
 	
 	// Print last 3 elements
 	for (int i = *numHullPoints-3; i < *numHullPoints; i++) {
-    	printf("Hull Point %d: (%f, %f)\n", i, points[hullPoints[i]].x, points[hullPoints[i]].y);
+    	printf("(%f, %f)\n",points[hullPoints[i]].x, points[hullPoints[i]].y);
 	}
 
 	// Compute time interval

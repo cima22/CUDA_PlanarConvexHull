@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <cmath>
-#include "../points_generation/random_points.h"
+#include "../../../../Desktop/CUDA_PlanarConvexHull/src/points_generation/random_points.h"
 #include <vector>
 #include <chrono>
 #include <cuda_runtime.h>
@@ -71,7 +71,7 @@ __global__ void quickHullKernel(Point* points, int numPoints, Point left, Point 
 int main() {
 	// Generate random points in the plane using the function from the generator
 	vector<Point> r_points = generate_random_points();
-	cout << "Points randomly generated!" << endl;
+	cout << N << " points randomly generated!" << endl;
 	
 	// host space
 	Point* h_points;
@@ -111,7 +111,7 @@ int main() {
 	int blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
 
 	// Timer starts
-    auto start = chrono::high_resolution_clock::now();
+    	auto start = chrono::high_resolution_clock::now();
     
 	// Launch Kernels
 	quickHullKernel<<<blocksPerGrid, threadsPerBlock>>>(d_points, N, left, right, d_hullPoints, d_numHullPoints);
@@ -126,22 +126,24 @@ int main() {
 	cudaMemcpy(h_hullPoints, d_hullPoints, N * sizeof(int), cudaMemcpyDeviceToHost);
 	cudaMemcpy(h_numhullPoints, d_numHullPoints, sizeof(int), cudaMemcpyDeviceToHost);	
 
+	cout << "Found convex hull with " << *h_numhullPoints << " points.\nPrinting the first and last three points of the hull:" << endl;
+
 	// Print first 3 elements
 	for (int i = 0; i < 3; i++) {
-    	printf("Hull Point %d: (%f, %f)\n", i, h_points[h_hullPoints[i]].x, h_points[h_hullPoints[i]].y);
+    	printf("(%f, %f)\n",h_points[h_hullPoints[i]].x, h_points[h_hullPoints[i]].y);
 	}
 	
 	cout << ".\n.\n." << endl;
 	
 	// Print last 3 elements
 	for (int i = *h_numhullPoints-3; i < *h_numhullPoints; i++) {
-    	printf("Hull Point %d: (%f, %f)\n", i, h_points[h_hullPoints[i]].x, h_points[h_hullPoints[i]].y);
+    	printf("(%f, %f)\n",h_points[h_hullPoints[i]].x, h_points[h_hullPoints[i]].y);
 	}
 
 	// Compute time interval
-    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    	auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
 
-    cout << "Execution time: " << duration << " ms" << endl;
+    	cout << "Execution time: " << duration << " ms" << endl;
 	
 	// Free memory space
 	cudaFree(d_points);
