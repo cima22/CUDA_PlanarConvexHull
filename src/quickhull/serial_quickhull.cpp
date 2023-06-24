@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cmath>
-#include "../../../../Desktop/CUDA_PlanarConvexHull/src/points_generation/random_points.h"
+#include "../points_generation/random_points.h"
 #include <vector>
 #include <chrono>
 #include <algorithm>
